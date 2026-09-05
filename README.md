@@ -2,6 +2,7 @@
 
 <div align="center">
 
+[![NPM Version](https://img.shields.io/npm/v/@javohirbek3302/uzpayment-sdk.svg?style=for-the-badge&logo=npm&color=CB3837)](https://www.npmjs.com/package/@javohirbek3302/uzpayment-sdk)
 [![PyPI Version](https://img.shields.io/badge/PyPI-v1.0.0-blue.svg?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/uzpayment/)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![License MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
