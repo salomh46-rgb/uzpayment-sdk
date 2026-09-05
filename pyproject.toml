@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "uzpayment"
+version = "1.0.0"
+description = "Universal Multi-Provider Payment Gateway SDK for Uzbekistan (Click, Payme, Uzum Bank, Paynet)"
+readme = "README.md"
+authors = [{ name = "Jasper", email = "salomh46@gmail.com" }]
+license = { text = "MIT" }
+keywords = ["uzpayment", "payme", "click", "uzumbank", "paynet", "payments", "uzbekistan", "fintech", "sdk", "fastapi", "django"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Office/Business :: Financial :: Point-Of-Sale"
+]
+requires-python = ">=3.8"
+dependencies = []
+
+[project.optional-dependencies]
+fastapi = ["fastapi>=0.80.0", "uvicorn>=0.18.0"]
+django = ["django>=3.2"]
+flask = ["flask>=2.0.0"]
+dev = ["pytest>=7.0.0", "pytest-cov>=4.0.0"]
+
+[project.urls]
+"Homepage" = "https://github.com/salomh46-rgb/uzpayment-sdk"
+"Bug Tracker" = "https://github.com/salomh46-rgb/uzpayment-sdk/issues"
