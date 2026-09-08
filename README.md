@@ -17,16 +17,36 @@
 
 ---
 
-## 🌟 Nega aynan UzPayment SDK? (Why UzPayment?)
+## 🏛️ Architecture Overview
 
-O'zbekistonda Click, Payme yoki Uzum Bank to'lov tizimlarini alohida ulash va har birining imzolarini (MD5, Basic Auth, JSON-RPC) tekshirish juda ko'p vaqt va kod talab qiladi.
+```mermaid
+graph LR
+    Client([🛒 User / Frontend App]) -->|Initiate Checkout| Gateway[💳 UzPayment SDK Core]
+    
+    subgraph Multi-Provider Adapters
+        Gateway --> Payme[💳 Payme API v2]
+        Gateway --> Click[💳 Click Merchant API]
+        Gateway --> Uzum[💳 Uzum Bank Gateway]
+        Gateway --> Paynet[💳 Paynet Direct]
+    end
+    
+    Payme --> Verifier{MD5 / Basic Auth Verifier}
+    Click --> Signer{HMAC-SHA256 Signer}
+    
+    Verifier --> Webhook[⚡ FastAPI / Django Webhook Router]
+    Signer --> Webhook
+    Webhook --> DB[(📦 Orders Database)]
+```
 
-**UzPayment SDK** barcha to'lov tizimlarini yagona, toza va professional interfeysga birlashtiradi:
-- ⚡️ **3 qatorda to'lovlarni ulash** (FastAPI, Django, Flask uchun tayyor adapterlar).
-- 🔒 **100% Xavfsizlik:** MD5, HMAC va Basic Auth imzo tekshiruvlari avtomatik ishlaydi.
+---
+
+## 🌟 Nega aynan UzPayment SDK? (Key Highlights)
+
+- ⚡ **3 qatorda to'lovlarni ulash** (FastAPI, Django, Flask uchun plug-and-play adapterlar).
+- 🔒 **100% Xavfsizlik:** MD5, HMAC-SHA256 va Basic Auth imzo tekshiruvlari avtomatik ishlaydi.
 - 🔗 **Tezkor Checkout Link & QR:** Click, Payme va Uzum uchun to'lov havolalarini 1 ta funksiya bilan yaratish.
-- 📦 **PyPI standarti:** `pip install uzpayment` orqali to'g'ridan-to'g'ri o'rnatish.
-- 🧪 **Lokal Test Server:** Real hisob raqamsiz ham webhooks va to'lovlarni kompyuteringizda testlash.
+- 📦 **PyPI & NPM Standarti:** `pip install uzpayment` orqali to'g'ridan-to'g'ri o'rnatish.
+- 🧪 **Lokal Mock Server:** Real hisob raqamsiz ham webhooks va to'lovlarni lokal mashinangizda testlash.
 
 ---
 
@@ -44,41 +64,7 @@ pip install "uzpayment[django]"  # Django uchun
 
 ---
 
-## 🚀 Tezkor Qo'llanma (Quickstart)
-
-### 1. To'lov Havolalarini Yaratish (Checkout URL Generator)
-
-```python
-from uzpayment import UzPayment, PaymeConfig, ClickConfig, PaymentProviderType
-
-# Initsializatsiya
-gateway = UzPayment(
-    payme=PaymeConfig(merchant_id="YOUR_PAYME_ID", secret_key="YOUR_PAYME_SECRET"),
-    click=ClickConfig(service_id="YOUR_SERVICE_ID", merchant_id="YOUR_MERCHANT_ID", secret_key="YOUR_CLICK_SECRET")
-)
-
-# 1. Payme to'lov havolasi
-payme_url = gateway.get_payment_url(
-    provider=PaymentProviderType.PAYME,
-    amount=50000, # 50 000 so'm
-    order_id="INV-1001",
-    return_url="https://myshop.uz/order/1001/success"
-)
-print("Payme URL:", payme_url)
-
-# 2. Click to'lov havolasi
-click_url = gateway.get_payment_url(
-    provider=PaymentProviderType.CLICK,
-    amount=50000,
-    order_id="INV-1001",
-    return_url="https://myshop.uz/order/1001/success"
-)
-print("Click URL:", click_url)
-```
-
----
-
-### 2. FastAPI ga Webhook ulash (3 Qatorda!)
+## 🚀 Quickstart: FastAPI ga 3 Qatorda Ulash!
 
 ```python
 from fastapi import FastAPI
@@ -88,21 +74,17 @@ from uzpayment.integrations.fastapi import create_payment_router
 app = FastAPI()
 
 gateway = UzPayment(
-    payme=PaymeConfig(merchant_id="...", secret_key="..."),
-    click=ClickConfig(service_id="...", merchant_id="...", secret_key="...")
+    payme=PaymeConfig(merchant_id="YOUR_PAYME_ID", secret_key="YOUR_PAYME_SECRET"),
+    click=ClickConfig(service_id="YOUR_SERVICE_ID", merchant_id="YOUR_MERCHANT_ID", secret_key="YOUR_CLICK_SECRET")
 )
 
-# Biznes mantiq: Buyurtmani tekshirish
 def verify_order(order_id: str, amount: int, provider: PaymentProviderType) -> AccountVerificationResult:
-    # Bazadan orderni topib summasini tekshiring
     return AccountVerificationResult(is_valid=True, order_id=order_id)
 
-# Biznes mantiq: To'lov muvaffaqiyatli o'tganda (Kassa/Status yangilash)
 def on_payment_success(trans_id: str):
     print(f"✅ To'lov muvaffaqiyatli qabul qilindi: {trans_id}")
     return {"status": "SUCCESS"}
 
-# Tayyor webhook routelarni ulang: /payments/payme va /payments/click
 app.include_router(create_payment_router(
     gateway=gateway,
     on_verify=verify_order,
@@ -113,50 +95,15 @@ app.include_router(create_payment_router(
 
 ---
 
-### 3. Django ga Webhook ulash
-
-```python
-# urls.py
-from django.urls import path
-from uzpayment import UzPayment, PaymeConfig, ClickConfig
-from uzpayment.integrations.django_views import create_django_views
-
-gateway = UzPayment(
-    payme=PaymeConfig(merchant_id="...", secret_key="..."),
-    click=ClickConfig(service_id="...", merchant_id="...", secret_key="...")
-)
-
-PaymeView, ClickView = create_django_views(
-    gateway=gateway,
-    on_verify=my_verify_func,
-    on_create=my_create_func,
-    on_success=my_success_func
-)
-
-urlpatterns = [
-    path("api/payments/payme/", PaymeView.as_view()),
-    path("api/payments/click/", ClickView.as_view()),
-]
-```
-
----
-
-## 🧪 Testlarni Ishga Tushirish (Running Unit Tests)
+## 🧪 Run Automated Tests
 
 ```bash
-pytest tests/ -v
+pytest -v tests/
 ```
 
 ---
 
 ## 👨‍💻 Muallif & Dasturchi
-- **Muallif:** [Jasper](https://github.com/salomh46-rgb)
+- **Muallif:** [Javohirbek Asqarov (Jasper)](https://github.com/salomh46-rgb)
 - **Portfolio:** [bestportfoliyo-o4z2.vercel.app](https://bestportfoliyo-o4z2.vercel.app/)
-- **Loyiha Repozitoriyasi:** [https://github.com/salomh46-rgb/uzpayment-sdk](https://github.com/salomh46-rgb/uzpayment-sdk)
 - **Litsenziya:** MIT License
-
----
-
-<div align="center">
-  <b>⭐️ Agar loyiha sizga ma'qul kelgan bo'lsa, GitHub-da Star (⭐️) bosishni unutmang!</b>
-</div>
